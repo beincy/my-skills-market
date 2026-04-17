@@ -5,7 +5,7 @@
 ## 添加市场
 
 ```bash
-/plugin marketplace add bianhui/my-skills-market
+/plugin marketplace add beincy/my-skills-market
 ```
 
 ## 查看可用插件
@@ -50,7 +50,6 @@
 - 📋 严格结构化的任务流水线 (Plan)
 - 🛡️ 自动熔断机制：信息不足时拒绝生成并提示澄清
 - ✅ 验收检查清单 (Checklist)
-- 🤖 **AI-Native 开发模式 (ai-native-coder)**：一种面向 AI 的工程模式，强制执行单文件隔离、禁用 OOP、Token 效率优化等 AI 原生开发规则。
 
 ---
 
