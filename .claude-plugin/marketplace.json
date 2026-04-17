@@ -1,0 +1,14 @@
+{
+  "name": "my-skills-market",
+  "owner": {
+    "name": "bianhui"
+  },
+  "plugins": [
+    {
+      "name": "spec",
+      "source": "./plugins/spec-plugin",
+      "description": "规范驱动开发助手。包含 Storm (头脑风暴) 和 Plan (任务规划) 两个核心命令。",
+      "version": "1.0.0"
+    }
+  ]
+}

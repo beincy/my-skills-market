@@ -1,0 +1,8 @@
+{
+  "name": "spec",
+  "description": "任务开始前的头脑风暴提示词命令，帮助全面拆解任务、发现风险、提升执行质量",
+  "version": "1.0.0",
+  "author": {
+    "name": "bianhui"
+  }
+}
