@@ -15,6 +15,12 @@
       "source": "./plugins/ai-native-coder",
       "description": "AI原生编程范式技能，强制执行面向LLM优化的编码规则",
       "version": "1.0.0"
+    },
+    {
+      "name": "my-wiki",
+      "source": "./plugins/my-wiki",
+      "description": "个人Wiki知识库技能，自动查询偏好/规范/历史决策，并在适当时机写入经验沉淀",
+      "version": "1.0.0"
     }
   ]
 }
