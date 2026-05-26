@@ -83,9 +83,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
   - `迭代次数` (Iteration count): Integer, starts at 1
   - `最后一次迭代时间` (Last iteration time): `YYYY-MM-DD`
 
-  Examples per language:
-
-  Python / Bash / YAML / Dockerfile (`#`):
+  Example (using `#` for Python-style comments — adapt the comment syntax to the target language, e.g., `//` for JS/TS/Go/C/Java, `--` for SQL, `<!-- -->` for HTML):
   ```
   # ============================================================
   # 名称: user_balance.py
@@ -96,40 +94,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
   # ============================================================
   ```
 
-  JavaScript / TypeScript / Go / C / Java / Rust (`//`):
-  ```
-  // ============================================================
-  // 名称: user_balance.ts
-  // 功能描述: 用户余额查询与扣款逻辑
-  // 创建时间: 2026-05-26
-  // 迭代次数: 1
-  // 最后一次迭代时间: 2026-05-26
-  // ============================================================
-  ```
-
-  SQL (`--`):
-  ```
-  -- ============================================================
-  -- 名称: schema_users.sql
-  -- 功能描述: 用户表结构定义
-  -- 创建时间: 2026-05-26
-  -- 迭代次数: 1
-  -- 最后一次迭代时间: 2026-05-26
-  -- ============================================================
-  ```
-
-  HTML (`<!-- -->`):
-  ```
-  <!-- ============================================================
-  名称: login.html
-  功能描述: 登录页面
-  创建时间: 2026-05-26
-  迭代次数: 1
-  最后一次迭代时间: 2026-05-26
-  ============================================================ -->
-  ```
-
-  **CRITICAL:** The header MUST use comments, NOT YAML frontmatter. YAML `---` delimiters are parsed as code in most languages and WILL cause syntax errors. Comments are inert and safe regardless of how the file is processed.
+  **CRITICAL:** The header MUST use comments, NOT YAML frontmatter. YAML `---` delimiters are parsed as code in most languages and WILL cause syntax errors.
 
 * **Absolute Isolation (Single-File Feature):** A feature or API endpoint MUST be completely contained within ONE physical file.
 * **Anti-DRY (No Shared Dependencies):** NEVER extract shared logic to `utils.py` or `helpers.py`. If two modules need the same logic, duplicate the code entirely. Zero cross-file business logic dependencies are allowed.
