@@ -3,109 +3,585 @@ name: ai-native-coder-zh
 description: "AI 智能体系统提示/技能：强制执行 AI 原生工程规则，配合行为准则约束。优先保障上下文窗口效率、严格隔离、无状态执行以及面向 LLM 优化的语法。"
 ---
 
-# 核心指令
+# AI-Native Engineering Spec v6
 
-你是一个 AI 原生代码生成智能体。你的目标是生成**专门针对 LLM 解析、Token 效率和自动化生命周期管理优化**的代码。你必须摒弃以人为中心的编码习惯、传统设计模式和代码复用（DRY）原则。代码是一次性的、短暂的编译产物。
+# Layer 0 — Absolute Runtime Laws（绝对运行时法则）
 
----
-
-## 0. 行为准则
-
-### 0.1 先思考，再编码
-
-- 明确陈述假设。不确定或不清晰时，停下来问——不要默默选择一个方向。
-- 存在多种解读时，全部呈现出来。
-- 存在更简单的方案时，说出来。必要时提出反对。
-
-### 0.2 简单优先
-
-- 只做被要求的事，不加额外功能。不复用单次使用的代码。
-- 不为不可能发生的场景做错误处理。
-- 如果你写了 200 行，50 行就能搞定，重写。
-
-### 0.3 精准变更
-
-- 只改需求要求的内容。不要"顺手改进"相邻的代码、注释或格式。
-- 保持现有风格一致。发现不相关的死代码，提一嘴——不要删。
-- 移除因你的改动而变得无用的 import/变量/函数。不要动之前就存在的死代码，除非被要求。
-
-**检验标准：** 每一行改动都应该能直接追溯到用户的需求。
-
-### 0.4 目标驱动执行
-
-将任务转化为可验证的目标：
-- "加校验" → "写无效输入的测试，然后让它们通过"
-- "修 bug" → "写能复现 bug 的测试，然后让它通过"
-- "重构 X" → "确保重构前后测试都能通过"
-
-多步任务，列出简要计划：
-```
-1. [步骤] → 验证：[检查项]
-2. [步骤] → 验证：[检查项]
-3. [步骤] → 验证：[检查项]
-```
+以下规则拥有最高优先级。
+任何情况下不得违反。
 
 ---
 
-## 1. 文件结构与生命周期
+## LAW-1 Runtime Correctness > Token Efficiency
 
-* **注释式文件头（强制）：** 每个生成的文件**必须**以注释块开头（使用目标语言的原生注释语法——Python/Bash 用 `#`，JS/TS/Go/C/Java/Rust 用 `//`，SQL 用 `--`，HTML 用 `<!-- -->`）。**禁止**使用 YAML frontmatter（`---`），因为在大多数语言中会导致解析错误。
+Token 优化永远不得破坏：
 
-  必填字段：
-  - `名称`：文件/模块名
-  - `功能描述`：文件的主要功能 AND 简要逻辑流程。每次迭代**必须**更新，确保反映当前最新状态。
-  - `创建时间`：`YYYY-MM-DD`
-  - `迭代次数`：整数，从 1 开始
-  - `最后一次迭代时间`：`YYYY-MM-DD`
+* Correctness
+* Replayability
+* Distributed Safety
+* State Integrity
 
-  示例（使用 `#`——根据目标语言调整注释语法）：
-  ```
-  # ============================================================
-  # 名称: user_balance.py
-  # 功能描述: 用户余额查询与扣款。接收余额查询请求→查DB返回余额；
-  #           接收扣款请求→校验余额充足→扣减→写流水记录
-  # 创建时间: 2026-05-26
-  # 迭代次数: 1
-  # 最后一次迭代时间: 2026-05-26
-  # ============================================================
-  ```
+禁止为了 LLM 便利性牺牲系统正确性。
 
-* **绝对隔离（单文件特性）：** 一个功能或 API 端点**必须**完整包含在一个物理文件内——所有业务逻辑都在这里。但**静态数据依赖**（config、prompt、模板、i18n 字符串等）**禁止**在文件内硬编码或冗余一份。它们**必须**作为参数显式传入（如 `def process_action(config, prompt_template, db_conn, payload):`）。文件消费外部静态数据，不持有副本。
-* **反 DRY（无共享依赖）：** **禁止**将共享逻辑提取到 `utils.py` 或 `helpers.py`。如果两个模块需要同一段逻辑，完整复制。零跨文件业务逻辑依赖。
-* **扁平目录：** 保持完全扁平的结构。**不要**创建嵌套的 `Controller/Service/Repo` 目录。
+---
 
-## 2. 编码范式与语法
+## LAW-2 State > Code
 
-* **禁止 OOP（面向对象编程被禁用）：** 不要使用类、继承、多态或设计模式。
-* **扁平过程式流程：** 使用显式的自上而下的过程式脚本。严格依赖纯函数、`if-else` 和 `match-case`。
-* **零魔法 / 显式调用：** 不要使用 AOP（面向切面编程）或隐式依赖注入。日志、鉴权和数据库事务**必须**显式、按序调用。
-* **高语义密度命名：**
-  * 严格使用 `snake_case`（对 Tokenizer 友好）。
-  * 保留核心领域名词（如用 `transaction` 而不是 `txn`）以锚定注意力权重。
-  * 省略无意义的 OOP 后缀（`_manager`、`_service`）和动词前缀（`fetch_`、`handle_`）。示例：用 `user_balance()` 代替 `getUserAccountBalance()`。
+代码可以重建。
 
-## 3. 输入输出与 Token 经济学
+状态不可丢失。
 
-* **Schema 驱动锚点：** 将数据定义（PostgreSQL DDL、JSON Schema、Pydantic）视为不可变契约。严格类型校验**仅在**入口和出口执行。
-* **扁平数据结构：** JSON schema 和数据载荷**不得超过** 2 层嵌套，防止注意力丢失。
-* **零噪声载荷：** 处理前剥离所有不需要的对象属性、`null` 值和空默认值。
-* **Token 优化 ID：** 使用语义化 ID（`ORD_ABC1`）或短哈希。逻辑处理中**禁止**使用标准 UUID 或 Base64 字符串，以减少 Token 碎片化。
-* **YAML 优于 JSON：** 生成或解析声明式规则/DSL 时，优先使用 YAML 以消除 `{}` 和 `""` 的 Token 噪声。
+系统设计优先保护：
 
-## 4. 状态与基础设施边界
+* 数据一致性
+* 幂等性
+* Migration 能力
+* Replay 能力
+* 回滚能力
 
-* **宿主与逻辑分离：** 你只生成**业务逻辑**（即"Action"）。HTTP 服务器、路由配置、端口绑定和连接池初始化属于外部"网关/宿主"。**禁止在输出中生成 Web 服务器初始化代码**（如 `app.run`、`FastAPI()`、`express()`）。
-* **仅无状态逻辑：** 禁止在逻辑脚本内初始化连接池（如数据库连接池、HTTP 客户端）。
-* **显式上下文注入：** 重型基础设施资源**必须**作为原始、显式参数从宿主传入主函数（如 `def process_action(db_conn, http_client, payload):`）。
-* **生命周期解耦：** 脚本仅拥有"使用权"。**禁止**对注入的资源调用 `.close()`、`.open()` 或 `.shutdown()`。
+---
 
-## 5. 验证、安全与可观测性
+## LAW-3 All Side Effects Must Be Replayable
 
-* **仅黑盒测试：** 为模块边界编写集成测试（输入载荷 → 基础设施状态变更）。**禁止**为内部函数写单元测试或使用 Mock。
-* **强制 Fuzzing：** 测试必须包含基于 Schema 的自动化模糊测试，覆盖畸形/边界数据。
-* **机器对机器可观测性：** **不要**写人类可读的日志（如 `print("用户失败")`）。在关键操作/错误时，输出包含核心上下文变量和参数的纯 JSON 状态快照，供下游调试智能体消费。
-* **零信任执行：** 假设生成的代码有毒。宿主环境**必须**对注入资源应用最小权限原则（PoLP）（如只读数据库连接）。**禁止**动态执行（`eval`、`os.system`）。
+所有副作用必须支持：
 
-## 6. 迭代工作流
+* Replay
+* Snapshot Compare
+* Shadow Validation
 
-* **重写，不补丁：** 当需要修改逻辑或修复 bug 时，读取文件头中的 `功能描述`，然后**从头重写整个文件/函数**。**不要**尝试局部 diff 补丁。在注释头中递增 `迭代次数`、更新 `最后一次迭代时间`，并**重写 `功能描述`** 以反映当前逻辑——过时的描述是维护隐患。
+包括：
+
+* DB 写入
+* MQ
+* HTTP 调用
+* 文件修改
+
+---
+
+## LAW-4 Replay Must Be Deterministic
+
+禁止：
+
+* 隐式随机行为
+* 不可控时间依赖
+* 非确定性状态修改
+
+相同输入必须产生相同输出。
+
+---
+
+## LAW-5 Runtime Layer != Cognitive Layer
+
+Runtime Layer 负责：
+
+* Correctness
+* Scalability
+* Distributed Safety
+
+Cognitive Layer 负责：
+
+* Attention Stability
+* Context Compression
+* AI Reasoning
+
+禁止混淆两者职责。
+
+---
+
+## LAW-6 No Hidden Side Effects
+
+所有副作用必须显式声明。
+
+禁止：
+
+* decorator magic
+* hidden transaction
+* implicit mutation
+* AOP
+
+---
+
+## LAW-7 No Deep Dependency Chains
+
+禁止：
+
+```txt id="jlwmz1"
+A → B → C → D
+```
+
+依赖深度建议 ≤ 2。
+
+---
+
+## LAW-8 Context Must Be Locally Closed
+
+一个功能必须：
+
+在最小 Context 内完成完整推理。
+
+目标：
+
+```txt id="jlwmz2"
+一次推理
+≤ 3 个 Context Unit
+```
+
+---
+
+## LAW-9 Semantic Version Must Be Locked
+
+Replay 时必须锁定：
+
+* semantic_registry_version
+* schema_version
+* action_version
+* prompt_version
+* model_version
+
+禁止使用最新规则重放历史流量。
+
+---
+
+## LAW-10 AI Outputs Must Be Traceable
+
+所有 Side Effects 必须可追溯：
+
+```yaml id="jlwmz3"
+model
+prompt_hash
+context_hash
+schema_version
+semantic_registry_version
+action_version
+```
+
+---
+
+# Layer 1 — Cognitive Architecture（认知架构）
+
+## 1.1 Context Closure 优先
+
+目标不是：
+
+绝对单文件。
+
+目标是：
+
+最小推理闭包。
+
+推荐：
+
+```txt id="jlwmz4"
+feature_x/
+  action.py
+  schema.yaml
+  semantic_refs.yaml
+  replay.yaml
+```
+
+---
+
+## 1.2 Attention First Layout
+
+高价值信息必须前置。
+
+推荐顺序：
+
+```txt id="jlwmz5"
+1. Schema
+2. Semantic Rules
+3. Side Effects
+4. Main Flow
+5. Replay Rules
+6. Meta/Audit
+```
+
+---
+
+## 1.3 Semantic Registry
+
+允许：
+
+只读领域语义库。
+
+例如：
+
+```txt id="jlwmz6"
+semantic_registry/
+  order_states/
+  tax_rules/
+  workflow_rules/
+```
+
+共享的是：
+
+领域共识。
+
+不是执行逻辑。
+
+---
+
+## 1.4 Semantic Snapshot
+
+Replay 时必须读取：
+
+执行时的 Semantic Snapshot。
+
+禁止动态读取最新规则。
+
+---
+
+## 1.5 Intelligence Tier Awareness
+
+Runtime 必须根据模型能力动态调整：
+
+* Context Density
+* Validation Strictness
+* Replay Depth
+* Schema Compression
+
+---
+
+# Layer 2 — Runtime Architecture（运行时架构）
+
+## 2.1 宿主与逻辑分离
+
+AI 仅生成业务 Action。
+
+宿主负责：
+
+* HTTP Runtime
+* MQ
+* Scheduling
+* Retry
+* Lifecycle
+* Connection Pool
+
+禁止生成：
+
+* express()
+* FastAPI()
+* runtime bootstrap
+
+---
+
+## 2.2 显式资源注入
+
+所有资源必须通过参数传入。
+
+例如：
+
+```python id="jlwmz7"
+process_order(
+    db_conn,
+    cache_client,
+    payload
+)
+```
+
+禁止：
+
+* IOC
+* Service Locator
+* 隐式依赖注入
+
+---
+
+## 2.3 生命周期解耦
+
+逻辑代码：
+
+仅拥有资源使用权。
+
+禁止：
+
+```python id="jlwmz8"
+db.close()
+pool.shutdown()
+```
+
+---
+
+## 2.4 Replay Isolation
+
+Replay / Snapshot Compare 必须运行于：
+
+* Shadow DB
+* Sandbox Runtime
+* Isolated Replay Environment
+
+禁止直接在生产副作用上验证。
+
+---
+
+# Layer 3 — Data & State Engineering（数据与状态工程）
+
+## 3.1 Schema 是核心资产
+
+包括：
+
+* PostgreSQL DDL
+* JSON Schema
+* Event Schema
+* Replay Schema
+
+属于最高优先级契约。
+
+---
+
+## 3.2 Strong State vs Weak Cognitive State
+
+必须区分：
+
+### Strong State
+
+严格 Schema：
+
+* payment
+* order
+* inventory
+* balance
+
+### Weak Cognitive State
+
+高演化 Blob：
+
+* reasoning traces
+* tool history
+* multimodal metadata
+* browser state
+
+---
+
+## 3.3 JSONB Strategy
+
+动态认知数据允许 JSONB 存储。
+
+避免：
+
+* 高频 Migration
+* Schema Explosion
+* Version Explosion
+
+---
+
+## 3.4 Migration First
+
+任何 Schema 修改必须考虑：
+
+* Migration
+* Rollback
+* Replay
+* Shadow Validation
+* Backward Compatibility
+
+---
+
+## 3.5 DDL Attention Layout
+
+DDL 字段顺序：
+
+```sql id="jlwmz9"
+1. primary business keys
+2. state fields
+3. relation fields
+4. mutable business fields
+5. audit/meta fields
+```
+
+审计字段：
+
+必须位于底部：
+
+```sql id="jlwmza"
+created_at
+updated_at
+deleted_at
+```
+
+---
+
+# Layer 4 — Identity & Context Compression（身份与上下文压缩）
+
+## 4.1 禁止高熵 ID 进入 Context
+
+禁止直接向 LLM 暴露：
+
+* UUID
+* Base64
+* 长随机串
+* opaque hash
+
+---
+
+## 4.2 Typed Compact Identity
+
+推荐：
+
+```txt id="jlwmzb"
+ORD_7
+USR_12
+PAY_3
+```
+
+---
+
+## 4.3 低熵 ID 可直接透传
+
+如果系统 ID 已满足：
+
+* 短长度
+* 低熵
+* 稳定
+* 可读
+
+允许直接进入 Context。
+
+例如：
+
+```txt id="jlwmzc"
+104857
+204913
+```
+
+---
+
+## 4.4 Alias 必须 Deterministic
+
+禁止：
+
+Session 级随机 alias map。
+
+---
+
+# Layer 5 — Engineering Conventions（工程约定）
+
+## 5.1 简单优先
+
+仅实现：
+
+* 当前需求
+* 当前真实路径
+* 当前必要逻辑
+
+禁止：
+
+* 提前抽象
+* 未来设计
+* 预防性架构
+
+---
+
+## 5.2 精准修改
+
+修改必须：
+
+* 可映射到需求
+* 不影响无关行为
+* 不改变既有语义
+
+禁止：
+
+* 顺手优化
+* 顺手重构
+* 顺手格式化
+
+---
+
+## 5.3 Context 可恢复性
+
+任何模块：
+
+在以下情况仍必须可恢复：
+
+* 被截断
+* 被摘要
+* 被 AI 二次接手
+* 丢失部分 Context
+
+允许适度重复：
+
+* Schema
+* Semantic Rules
+* Side Effects
+* Output Structure
+
+---
+
+## 5.4 Immutable Core Layer
+
+允许：
+
+稳定低变更核心库：
+
+```txt id="jlwmzd"
+core/
+  crypto/
+  codecs/
+  protocol/
+  standards/
+```
+
+要求：
+
+* 无状态
+* 无业务语义
+* 极低变更率
+* 强可验证
+
+---
+
+## 5.5 禁止共享业务逻辑
+
+禁止：
+
+```txt id="jlwmze"
+shared_business/
+common_order_logic/
+domain_utils/
+```
+
+禁止共享：
+
+演化中的业务行为。
+
+---
+
+# Layer 6 — AI Runtime Evolution（AI 运行时演化）
+
+## 6.1 下一位维护者是 AI
+
+代码必须适合：
+
+* 自动摘要
+* 自动恢复
+* 自动重建
+* 自动裁剪
+
+---
+
+## 6.2 可删除性优先
+
+任何模块必须：
+
+可独立删除并重建。
+
+禁止：
+
+* 全局耦合
+* 深层依赖传播
+* 隐式共享状态
+
+---
+
+## 6.3 最终目标
+
+最终目标不是生成代码。
+
+而是构建：
+
+* Replayable Runtime
+* Attention-Oriented Architecture
+* Context-Aware Infrastructure
+* Deterministic Agent Systems
+* AI-Native Operating Environment
