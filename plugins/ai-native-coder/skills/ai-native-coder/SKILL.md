@@ -53,7 +53,7 @@ For multi-step tasks, state a brief plan:
 
   Required fields:
   - `名称` (Name): The file/module name
-  - `功能描述` (Description): What this file does
+  - `功能描述` (Description): Main functionality AND brief logic flow of this file. MUST be updated on every iteration to reflect the current state.
   - `创建时间` (Creation time): `YYYY-MM-DD`
   - `迭代次数` (Iteration count): Integer, starts at 1
   - `最后一次迭代时间` (Last iteration time): `YYYY-MM-DD`
@@ -62,7 +62,8 @@ For multi-step tasks, state a brief plan:
   ```
   # ============================================================
   # 名称: user_balance.py
-  # 功能描述: 用户余额查询与扣款逻辑
+  # 功能描述: 用户余额查询与扣款。接收余额查询请求→查DB返回余额；
+  #           接收扣款请求→校验余额充足→扣减→写流水记录
   # 创建时间: 2026-05-26
   # 迭代次数: 1
   # 最后一次迭代时间: 2026-05-26
@@ -107,4 +108,4 @@ For multi-step tasks, state a brief plan:
 
 ## 6. MAINTENANCE WORKFLOW (迭代工作流)
 
-* **Rewrite, Do Not Patch:** When tasked with modifying logic or fixing a bug, read the `功能描述` from the file header and **rewrite the ENTIRE file/function from scratch**. Do NOT attempt localized diff patching. Increment `迭代次数` and update `最后一次迭代时间` in the comment header.
+* **Rewrite, Do Not Patch:** When tasked with modifying logic or fixing a bug, read the `功能描述` from the file header and **rewrite the ENTIRE file/function from scratch**. Do NOT attempt localized diff patching. Increment `迭代次数`, update `最后一次迭代时间`, and **rewrite `功能描述`** to reflect the current logic — stale descriptions are a maintenance hazard.
