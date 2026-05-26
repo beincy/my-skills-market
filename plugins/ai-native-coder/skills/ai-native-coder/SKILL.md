@@ -70,7 +70,7 @@ For multi-step tasks, state a brief plan:
   # ============================================================
   ```
 
-* **Absolute Isolation (Single-File Feature):** A feature or API endpoint MUST be completely contained within ONE physical file.
+* **Absolute Isolation (Single-File Feature):** A feature or API endpoint MUST be completely contained within ONE physical file — all business logic lives here. However, **static data dependencies** (config, prompts, templates, i18n strings, etc.) MUST NOT be hardcoded or duplicated inside the file. Instead, they MUST be passed in explicitly as parameters (e.g., `def process_action(config, prompt_template, db_conn, payload):`). The file consumes external static data; it never owns a copy.
 * **Anti-DRY (No Shared Dependencies):** NEVER extract shared logic to `utils.py` or `helpers.py`. If two modules need the same logic, duplicate the code entirely. Zero cross-file business logic dependencies are allowed.
 * **Flat Directory:** Maintain a completely flat structure. DO NOT create nested `Controller/Service/Repo` directories.
 
