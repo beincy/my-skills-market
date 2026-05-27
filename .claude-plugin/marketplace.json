@@ -13,8 +13,14 @@
     {
       "name": "ai-native-coder",
       "source": "./plugins/ai-native-coder",
-      "description": "AI原生编程范式技能，强制执行面向LLM优化的编码规则",
-      "version": "1.0.0"
+      "description": "AI-Native Engineering skill: Enforces LLM-optimized coding rules for AI agents",
+      "version": "1.2.0"
+    },
+    {
+      "name": "ai-native-coder-zh",
+      "source": "./plugins/ai-native-coder-zh",
+      "description": "AI 原生编程范式技能（中文版），强制执行面向 LLM 优化的编码规则",
+      "version": "1.2.0"
     },
     {
       "name": "my-wiki",

@@ -18,6 +18,7 @@
 
 ```bash
 /plugin install <plugin-name>@my-skills-market
+/plugin install <plugin-name>@my-skills-market --scope project
 ```
 
 ## 更新市场
