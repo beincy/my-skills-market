@@ -79,3 +79,8 @@ claude plugin validate .
 # 本地添加测试
 /plugin marketplace add ./
 ```
+
+## 安装插件命令
+```bash
+npx skills add https://github.com/beincy/my-skills-market --skill ai-native-coder-zh
+```
